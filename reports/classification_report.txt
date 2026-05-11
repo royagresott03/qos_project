@@ -1,0 +1,14 @@
+REPORTE DE CLASIFICACIÓN QoS — Random Forest
+Generado: 2026-05-10 20:09:38
+============================================================
+
+              precision    recall  f1-score   support
+
+       Buena       1.00      1.00      1.00        88
+   Excelente       1.00      1.00      1.00        87
+        Mala       1.00      1.00      1.00        87
+     Regular       1.00      1.00      1.00        88
+
+    accuracy                           1.00       350
+   macro avg       1.00      1.00      1.00       350
+weighted avg       1.00      1.00      1.00       350

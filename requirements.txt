@@ -1,0 +1,25 @@
+# ============================================================
+# requirements.txt — QoS ML Analyzer
+# Python >= 3.9
+# ============================================================
+
+# ── Interfaz gráfica ────────────────────────────────────────
+streamlit>=1.32.0
+
+# ── Manipulación de datos ────────────────────────────────────
+pandas>=2.1.0
+numpy>=1.26.0
+openpyxl>=3.1.2           # lectura/escritura de .xlsx
+
+# ── Machine Learning ─────────────────────────────────────────
+scikit-learn>=1.4.0
+xgboost>=2.0.0            # opcional pero recomendado
+scipy>=1.11.0             # para z-score en detección de outliers
+
+# ── Visualizaciones ──────────────────────────────────────────
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# ── Serialización ────────────────────────────────────────────
+# pickle ya está incluido en la librería estándar de Python
+joblib>=1.3.0             # alternativa moderna a pickle para sklearn
