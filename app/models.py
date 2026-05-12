@@ -24,7 +24,7 @@ from sklearn.metrics import (
     confusion_matrix,
 )
 
-# XGBoost es opcional: si no está instalado, se omite silenciosamente
+# XGBoost es opcional: si no está instalado, se omite s
 try:
     from xgboost import XGBClassifier
     XGBOOST_AVAILABLE = True
@@ -33,10 +33,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-
-# ---------------------------------------------------------------------------
 # Definición de modelos disponibles
-# ---------------------------------------------------------------------------
 
 def build_model_catalog(random_state: int = 42) -> Dict[str, Any]:
     """
@@ -96,9 +93,7 @@ def build_model_catalog(random_state: int = 42) -> Dict[str, Any]:
     return catalog
 
 
-# ---------------------------------------------------------------------------
 # Clase principal del entrenador
-# ---------------------------------------------------------------------------
 
 class QoSModelTrainer:
     """
@@ -124,9 +119,7 @@ class QoSModelTrainer:
         self.class_names: List[str] = []
         os.makedirs(models_dir, exist_ok=True)
 
-    # ------------------------------------------------------------------
     # Entrenamiento y evaluación
-    # ------------------------------------------------------------------
 
     def _evaluate_model(
         self,
@@ -224,9 +217,7 @@ class QoSModelTrainer:
             self.results[self.best_model_name]["accuracy"],
         )
 
-    # ------------------------------------------------------------------
     # Predicción
-    # ------------------------------------------------------------------
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -256,9 +247,7 @@ class QoSModelTrainer:
             return self.best_model.predict_proba(X)
         return None
 
-    # ------------------------------------------------------------------
     # Importancia de características
-    # ------------------------------------------------------------------
 
     def get_feature_importances(
         self, feature_names: List[str]
@@ -289,9 +278,7 @@ class QoSModelTrainer:
         )
         return None
 
-    # ------------------------------------------------------------------
     # Persistencia
-    # ------------------------------------------------------------------
 
     def save_best_model(self, filename: str = "best_model.pkl") -> str:
         """
@@ -339,9 +326,7 @@ class QoSModelTrainer:
         logger.info("Modelo cargado: %s", payload.get("model_name"))
         return payload
 
-    # ------------------------------------------------------------------
     # Reporte comparativo
-    # ------------------------------------------------------------------
 
     def get_comparison_dataframe(self) -> pd.DataFrame:
         """

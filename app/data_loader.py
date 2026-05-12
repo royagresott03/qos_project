@@ -11,10 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
-# ---------------------------------------------------------------------------
 # Constantes del módulo
-# ---------------------------------------------------------------------------
 SUPPORTED_EXTENSIONS = {".xlsx", ".xls", ".csv"}
 
 EXPECTED_QOS_COLUMNS = [
@@ -25,10 +22,7 @@ EXPECTED_QOS_COLUMNS = [
 
 TARGET_COLUMN_CANDIDATES = ["calidad_red", "quality", "label", "clase", "categoria"]
 
-
-# ---------------------------------------------------------------------------
 # Funciones públicas
-# ---------------------------------------------------------------------------
 
 def load_file(filepath: str) -> pd.DataFrame:
     """

@@ -14,9 +14,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
+
 # Clase principal de preprocesamiento
-# ---------------------------------------------------------------------------
+
 
 class QoSPreprocessor:
     """
@@ -50,9 +50,7 @@ class QoSPreprocessor:
         self.class_names: List[str] = []
         self._fitted = False
 
-    # ------------------------------------------------------------------
     # Pasos individuales de preprocesamiento
-    # ------------------------------------------------------------------
 
     def _drop_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
         """Elimina filas duplicadas exactas."""
@@ -141,9 +139,7 @@ class QoSPreprocessor:
             )
         return df[mask].reset_index(drop=True)
 
-    # ------------------------------------------------------------------
     # Método principal fit_transform
-    # ------------------------------------------------------------------
 
     def fit_transform(
         self, df: pd.DataFrame, target_col: str

@@ -18,9 +18,7 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 
-# ---------------------------------------------------------------------------
 # Asegurar que el paquete raíz esté en el path
-# ---------------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
@@ -46,9 +44,7 @@ from app.exporter import (
     package_results_zip,
 )
 
-# ---------------------------------------------------------------------------
 # Configuración de logging
-# ---------------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)s  %(name)s  %(message)s",
@@ -56,9 +52,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("streamlit_app")
 
-# ---------------------------------------------------------------------------
 # Directorios de trabajo
-# ---------------------------------------------------------------------------
 GRAPHS_DIR = str(ROOT / "graphs")
 MODELS_DIR = str(ROOT / "models")
 REPORTS_DIR = str(ROOT / "reports")
@@ -66,9 +60,7 @@ os.makedirs(GRAPHS_DIR, exist_ok=True)
 os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
-# ---------------------------------------------------------------------------
 # Configuración de la página
-# ---------------------------------------------------------------------------
 st.set_page_config(
     page_title="QoS ML Analyzer",
     page_icon="📡",
@@ -76,9 +68,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ---------------------------------------------------------------------------
-# CSS personalizado
-# ---------------------------------------------------------------------------
+# CSS 
 st.markdown(
     """
     <style>
@@ -146,9 +136,7 @@ st.markdown(
 )
 
 
-# ---------------------------------------------------------------------------
 # Helpers de UI
-# ---------------------------------------------------------------------------
 
 def metric_card(label: str, value: str, delta: str = "") -> None:
     delta_html = f"<div style='color:#10B981;font-size:.85rem;'>{delta}</div>" if delta else ""
@@ -176,9 +164,7 @@ def show_image(path: str, caption: str = "") -> None:
         st.info(f"Gráfica no disponible: {caption}")
 
 
-# ---------------------------------------------------------------------------
 # Banner principal
-# ---------------------------------------------------------------------------
 
 st.markdown(
     """
@@ -191,9 +177,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ---------------------------------------------------------------------------
 # Sidebar — configuración del análisis
-# ---------------------------------------------------------------------------
+
 
 with st.sidebar:
     st.image(
@@ -229,9 +214,8 @@ with st.sidebar:
         "**Autor:** QoS ML System"
     )
 
-# ---------------------------------------------------------------------------
+
 # Inicializar estado de sesión
-# ---------------------------------------------------------------------------
 for key in ["df", "preprocessor", "trainer", "X_test_raw", "results_ready",
             "graph_paths", "target_col"]:
     if key not in st.session_state:
@@ -239,9 +223,7 @@ for key in ["df", "preprocessor", "trainer", "X_test_raw", "results_ready",
 if "results_ready" not in st.session_state:
     st.session_state["results_ready"] = False
 
-# ---------------------------------------------------------------------------
 # PASO 1 — Carga de datos
-# ---------------------------------------------------------------------------
 section_title("1. Cargar Dataset")
 
 col_upload, col_sample = st.columns([2, 1])
@@ -288,9 +270,7 @@ if uploaded_file:
         except Exception as e:
             st.error(f"Error al cargar el archivo: {e}")
 
-# ---------------------------------------------------------------------------
 # Mostrar previsualización si hay datos
-# ---------------------------------------------------------------------------
 if st.session_state["df"] is not None:
     df = st.session_state["df"]
 
@@ -335,9 +315,7 @@ if st.session_state["df"] is not None:
     st.info(f"Columna objetivo seleccionada: **{target_col}** | "
             f"Valores únicos: {df[target_col].nunique()} — {list(df[target_col].unique())[:6]}")
 
-    # ---------------------------------------------------------------------------
     # PASO 2 — Entrenamiento
-    # ---------------------------------------------------------------------------
     section_title("3. Entrenar Modelos")
 
     if st.button("🚀 Iniciar Entrenamiento", type="primary", use_container_width=True):
@@ -464,9 +442,7 @@ if st.session_state["df"] is not None:
             logger.exception("Error en entrenamiento")
             progress.empty()
 
-# ---------------------------------------------------------------------------
 # PASO 3 — Resultados
-# ---------------------------------------------------------------------------
 if st.session_state.get("results_ready") and st.session_state.get("trainer"):
     trainer: QoSModelTrainer = st.session_state["trainer"]
     preprocessor: QoSPreprocessor = st.session_state["preprocessor"]
@@ -474,7 +450,7 @@ if st.session_state.get("results_ready") and st.session_state.get("trainer"):
     best_name = trainer.best_model_name
     best_metrics = trainer.results[best_name]
 
-    # ─── Métricas ─────────────────────────────────────────────────────────
+    #Métricas
     section_title("4. Resultados del Mejor Modelo")
 
     st.markdown(
@@ -495,7 +471,7 @@ if st.session_state.get("results_ready") and st.session_state.get("trainer"):
         with col:
             metric_card(label, val)
 
-    # ─── Comparación de modelos ─────────────────────────────────────────
+    #Comparación de modelos
     section_title("5. Comparación de Modelos")
     comparison_df = trainer.get_comparison_dataframe()
     st.dataframe(
@@ -503,11 +479,11 @@ if st.session_state.get("results_ready") and st.session_state.get("trainer"):
         use_container_width=True,
     )
 
-    # ─── Reporte de clasificación ────────────────────────────────────────
+    #Reporte de clasificación
     with st.expander("📄 Classification Report completo"):
         st.code(best_metrics["classification_report"], language="text")
 
-    # ─── Visualizaciones ─────────────────────────────────────────────────
+    #Visualizaciones
     section_title("6. Visualizaciones")
 
     tabs = st.tabs([
@@ -532,7 +508,7 @@ if st.session_state.get("results_ready") and st.session_state.get("trainer"):
     with tabs[5]:
         show_image(graph_paths.get("comparacion", ""), "Comparación de Modelos")
 
-    # ─── Predicción individual ──────────────────────────────────────────
+    #Predicción individual
     section_title("7. Predicción Manual")
     st.markdown("Introduce valores de métricas QoS para obtener una predicción en tiempo real:")
 
@@ -588,7 +564,7 @@ if st.session_state.get("results_ready") and st.session_state.get("trainer"):
         except Exception as e:
             st.error(f"Error en predicción: {e}")
 
-    # ─── Descargas ───────────────────────────────────────────────────────
+    #Descargas
     section_title("8. Exportar Resultados")
     export_paths = st.session_state.get("export_paths", {})
 

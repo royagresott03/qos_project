@@ -16,9 +16,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
 # Configuración global de estilo
-# ---------------------------------------------------------------------------
 PALETTE = "viridis"
 FIG_DPI = 150
 TITLE_FONTSIZE = 14
@@ -45,10 +43,7 @@ def _save_and_close(fig: plt.Figure, filename: str, graphs_dir: str = GRAPHS_DIR
     return path
 
 
-# ---------------------------------------------------------------------------
 # 1. Heatmap de correlación
-# ---------------------------------------------------------------------------
-
 def plot_correlation_heatmap(
     df: pd.DataFrame,
     target_col: Optional[str] = None,
@@ -98,9 +93,7 @@ def plot_correlation_heatmap(
     return _save_and_close(fig, "heatmap_correlacion.png", graphs_dir)
 
 
-# ---------------------------------------------------------------------------
 # 2. Distribución de clases
-# ---------------------------------------------------------------------------
 
 def plot_class_distribution(
     y_labels: np.ndarray,
@@ -146,9 +139,7 @@ def plot_class_distribution(
     return _save_and_close(fig, "distribucion_clases.png", graphs_dir)
 
 
-# ---------------------------------------------------------------------------
 # 3. Histogramas de variables numéricas
-# ---------------------------------------------------------------------------
 
 def plot_feature_histograms(
     df: pd.DataFrame,
@@ -201,9 +192,7 @@ def plot_feature_histograms(
     return _save_and_close(fig, "histogramas_variables.png", graphs_dir)
 
 
-# ---------------------------------------------------------------------------
 # 4. Importancia de características
-# ---------------------------------------------------------------------------
 
 def plot_feature_importances(
     importances_df: pd.DataFrame,
@@ -244,10 +233,7 @@ def plot_feature_importances(
     return _save_and_close(fig, "importancia_variables.png", graphs_dir)
 
 
-# ---------------------------------------------------------------------------
 # 5. Matriz de confusión
-# ---------------------------------------------------------------------------
-
 def plot_confusion_matrix(
     cm: np.ndarray,
     class_names: List[str],
@@ -302,9 +288,7 @@ def plot_confusion_matrix(
     return _save_and_close(fig, "matriz_confusion.png", graphs_dir)
 
 
-# ---------------------------------------------------------------------------
 # 6. Comparación de modelos
-# ---------------------------------------------------------------------------
 
 def plot_model_comparison(
     comparison_df: pd.DataFrame,
@@ -352,9 +336,7 @@ def plot_model_comparison(
     return _save_and_close(fig, "comparacion_modelos.png", graphs_dir)
 
 
-# ---------------------------------------------------------------------------
 # 7. Función agrupadora: genera todas las gráficas de una vez
-# ---------------------------------------------------------------------------
 
 def generate_all_plots(
     df: pd.DataFrame,

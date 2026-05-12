@@ -18,9 +18,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
 # Exportación de predicciones a Excel
-# ---------------------------------------------------------------------------
 
 def export_predictions_to_excel(
     original_df: pd.DataFrame,
@@ -87,10 +85,7 @@ def export_predictions_to_excel(
     logger.info("Predicciones exportadas: %s", output_path)
     return output_path
 
-
-# ---------------------------------------------------------------------------
 # Exportación del reporte de métricas
-# ---------------------------------------------------------------------------
 
 def export_metrics_report(
     model_name: str,
@@ -158,10 +153,7 @@ def export_metrics_report(
     logger.info("Reporte de métricas exportado: %s", output_path)
     return output_path
 
-
-# ---------------------------------------------------------------------------
 # Exportar reporte en texto / JSON
-# ---------------------------------------------------------------------------
 
 def export_classification_report_txt(
     classification_report_str: str,
@@ -194,10 +186,7 @@ def export_classification_report_txt(
     return output_path
 
 
-# ---------------------------------------------------------------------------
 # Empaquetar todos los artefactos en un ZIP
-# ---------------------------------------------------------------------------
-
 def package_results_zip(
     files_to_include: List[str],
     output_zip: str = "reports/resultados_qos.zip",
