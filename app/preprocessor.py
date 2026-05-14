@@ -111,9 +111,8 @@ class QoSPreprocessor:
     ) -> pd.DataFrame:
         """
         Elimina outliers extremos usando z-score > threshold en columnas numéricas.
-        No modifica la columna target.
+        No modifica la columna target
 
-        Args:
             df: DataFrame de entrada
             target_col: Columna a excluir de la detección de outliers
             threshold: Número de desviaciones estándar para considerar outlier
@@ -140,25 +139,19 @@ class QoSPreprocessor:
         return df[mask].reset_index(drop=True)
 
     # Método principal fit_transform
-
-    def fit_transform(
-        self, df: pd.DataFrame, target_col: str
-    ) -> Tuple[
-        np.ndarray, np.ndarray, np.ndarray, np.ndarray
-    ]:
         """
         Aplica el pipeline completo de preprocesamiento y retorna
-        los conjuntos train/test listos para ML.
+        los conjuntos train/test listos para el ML.
 
         Pasos:
-            1. Eliminar duplicados
-            2. Manejar nulos
-            3. Codificar categóricas
-            4. Eliminar outliers extremos
-            5. Codificar target
-            6. Normalizar features
-            7. Selección de características (opcional)
-            8. Dividir en train/test
+            Eliminar duplicados
+            Manejar nulos
+            Codificar categóricas
+            Eliminar outliers extremos
+            Codificar target
+            Normalizar features
+            Selección de características (opcional)
+            Dividir en train/test
 
         Args:
             df: DataFrame completo (features + target)
@@ -167,6 +160,12 @@ class QoSPreprocessor:
         Returns:
             Tupla (X_train, X_test, y_train, y_test)
         """
+    def fit_transform(
+        self, df: pd.DataFrame, target_col: str
+    ) -> Tuple[
+        np.ndarray, np.ndarray, np.ndarray, np.ndarray
+    ]:
+
         logger.info("Iniciando pipeline de preprocesamiento...")
 
         # 1. Duplicados
@@ -232,14 +231,13 @@ class QoSPreprocessor:
     def transform_new(self, df: pd.DataFrame, target_col: Optional[str] = None) -> np.ndarray:
         """
         Transforma nuevos datos usando el scaler ajustado en entrenamiento.
-        Útil para predicciones en producción.
 
         Args:
             df: Nuevos datos (sin columna target)
             target_col: Si está presente, se descarta
 
         Returns:
-            Array numpy normalizado y listo para predicción
+            Array numpy normalizado y listo para la predicción
         """
         if not self._fitted:
             raise RuntimeError("Llama fit_transform() antes de transform_new().")
@@ -257,7 +255,7 @@ class QoSPreprocessor:
 
     def decode_labels(self, y_encoded: np.ndarray) -> np.ndarray:
         """
-        Convierte etiquetas numéricas de vuelta a texto.
+        esto convierte etiquetas numéricas de vuelta a texto.
 
         Args:
             y_encoded: Array de enteros codificados

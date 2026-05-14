@@ -97,11 +97,11 @@ def build_model_catalog(random_state: int = 42) -> Dict[str, Any]:
 
 class QoSModelTrainer:
     """
-    Entrena múltiples modelos, los compara y guarda el mejor.
+    este enntrena lo multiples modelos, los compara y guarda el mejor.
 
     Atributos:
-        results: Diccionario con métricas de cada modelo
-        best_model_name: Nombre del modelo con mejor accuracy
+        results: Diccionario con metricas de cada modelo
+        best_model_name: nombre del modelo con mejor accuracy
         best_model: Instancia del mejor modelo entrenado
     """
 
@@ -129,7 +129,7 @@ class QoSModelTrainer:
         class_names: List[str],
     ) -> Dict[str, Any]:
         """
-        Evalúa un modelo ya entrenado sobre el conjunto de test.
+        este evalua un modelo ya entrenado sobre el conjunto de test.
 
         Returns:
             Diccionario con accuracy, precision, recall, f1, confusion_matrix
@@ -161,7 +161,7 @@ class QoSModelTrainer:
         class_names: List[str],
     ) -> Dict[str, Dict[str, Any]]:
         """
-        Entrena y evalúa todos los modelos del catálogo.
+        entrena y evalua todos los modelos del catalogo.
 
         Args:
             X_train, X_test: Features normalizadas
@@ -221,13 +221,13 @@ class QoSModelTrainer:
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         """
-        Realiza predicciones con el mejor modelo entrenado.
+        realiza predicciones con el mejor modelo entrenado.
 
         Args:
             X: Features normalizadas
 
         Returns:
-            Array con etiquetas numéricas predichas
+            Array con etiquetas numericas predichas
         """
         if self.best_model is None:
             raise RuntimeError("Primero llama a train_all().")
@@ -235,13 +235,13 @@ class QoSModelTrainer:
 
     def predict_proba(self, X: np.ndarray) -> Optional[np.ndarray]:
         """
-        Retorna probabilidades de clase si el modelo las soporta.
+        retorna probabilidades de clase 
 
-        Args:
+        args:
             X: Features normalizadas
 
-        Returns:
-            Matriz de probabilidades o None
+        returns:
+            matriz de probabilidades o None
         """
         if hasattr(self.best_model, "predict_proba"):
             return self.best_model.predict_proba(X)
@@ -253,14 +253,14 @@ class QoSModelTrainer:
         self, feature_names: List[str]
     ) -> Optional[pd.DataFrame]:
         """
-        Extrae la importancia de características del mejor modelo
-        (solo disponible para modelos basados en árboles y XGBoost).
+        extrae la importancia de características del mejor modelo
+        (solo disponible para modelos basados en arboles y XGBoost).
 
         Args:
             feature_names: Lista de nombres de columnas de entrada
 
         Returns:
-            DataFrame ordenado por importancia o None
+            dataframe ordenado por importancia o None
         """
         if self.best_model is None:
             return None
@@ -282,7 +282,7 @@ class QoSModelTrainer:
 
     def save_best_model(self, filename: str = "best_model.pkl") -> str:
         """
-        Guarda el mejor modelo entrenado como archivo .pkl.
+        este guarda el mejor modelo entrenado como archivo .pkl.
 
         Args:
             filename: Nombre del archivo (sin ruta)
@@ -313,13 +313,13 @@ class QoSModelTrainer:
     @staticmethod
     def load_model(path: str) -> Dict[str, Any]:
         """
-        Carga un modelo desde un archivo .pkl.
+        carga un modelo desde un archivo .pkl.
 
         Args:
-            path: Ruta al archivo .pkl
+            path: ruta al archivo .pkl
 
         Returns:
-            Diccionario con modelo y metadatos
+            diccionario con modelo y metadatos
         """
         with open(path, "rb") as f:
             payload = pickle.load(f)
@@ -330,10 +330,10 @@ class QoSModelTrainer:
 
     def get_comparison_dataframe(self) -> pd.DataFrame:
         """
-        Construye un DataFrame comparativo de todos los modelos entrenados.
+        este construye un dataframe comparativo de todos los modelos entrenados.
 
         Returns:
-            DataFrame con métricas por modelo, ordenado por accuracy desc
+            dataframe con métricas por modelo, ordenado por accuracy desc
         """
         rows = []
         for name, res in self.results.items():
