@@ -1,15 +1,3 @@
-"""
-Generador de dataset REALISTA de QoS para redes móviles.
-
-Mejoras anti-sobreentrenamiento aplicadas:
-    1. Solapamiento entre clases  → los rangos se cruzan intencionalmente
-    2. Ruido gaussiano            → simula imprecisión de sensores reales
-    3. Correlación entre variables → latencia alta implica throughput bajo
-    4. Casos ambiguos             → muestras en la frontera entre clases
-    5. Desbalance controlado      → refleja distribución real de una red
-    6. Anomalías esporádicas      → picos de latencia o pérdida momentánea
-"""
-
 import numpy as np
 import pandas as pd
 import os
@@ -18,26 +6,23 @@ np.random.seed(42)
 
 
 # ---------------------------------------------------------------------------
-# Rangos base con SOLAPAMIENTO intencional entre clases
-# ---------------------------------------------------------------------------
-# Nota: los rangos se cruzan deliberadamente para que el modelo no pueda
-# memorizar fronteras perfectas → aprende patrones reales, no reglas exactas.
+# implemente el solapamiento entre clases y ruido guassiano esto para que la prediccion sea mas real 
 
 RANGOS_BASE = {
     "Excelente": {
-        "latencia_ms":       (5,   35),    # solapa con Buena (20-35)
-        "jitter_ms":         (1,   10),    # solapa con Buena (5-10)
-        "rtt_ms":            (10,  70),    # solapa con Buena
-        "perdida_paquetes":  (0.0, 1.0),   # solapa con Buena (0.5-1.0)
-        "throughput_mbps":   (60,  150),   # solapa con Buena (60-80)
+        "latencia_ms":       (5,   35),   
+        "jitter_ms":         (1,   10),    
+        "rtt_ms":            (10,  70),   
+        "perdida_paquetes":  (0.0, 1.0),   
+        "throughput_mbps":   (60,  150),  
         "ancho_banda_mbps":  (70,  200),
         "intensidad_senal":  (-70, -50),
         "velocidad_descarga": (55, 120),
         "velocidad_subida":  (15,  50),
-        "congestion_red":    (0,   20),    # solapa con Buena (10-20)
+        "congestion_red":    (0,   20),    
     },
     "Buena": {
-        "latencia_ms":       (15,  80),    # solapa con Excelente y Regular
+        "latencia_ms":       (15,  80),    
         "jitter_ms":         (4,   22),
         "rtt_ms":            (30,  130),
         "perdida_paquetes":  (0.3, 3.5),
@@ -49,7 +34,7 @@ RANGOS_BASE = {
         "congestion_red":    (8,   45),
     },
     "Regular": {
-        "latencia_ms":       (50,  200),   # solapa con Buena y Mala
+        "latencia_ms":       (50,  200),   
         "jitter_ms":         (12,  50),
         "rtt_ms":            (90,  350),
         "perdida_paquetes":  (1.5, 8.0),
@@ -61,7 +46,7 @@ RANGOS_BASE = {
         "congestion_red":    (30,  75),
     },
     "Mala": {
-        "latencia_ms":       (120, 600),   # solapa con Regular (120-200)
+        "latencia_ms":       (120, 600),   
         "jitter_ms":         (30,  120),
         "rtt_ms":            (200, 900),
         "perdida_paquetes":  (5.0, 25.0),
@@ -74,8 +59,6 @@ RANGOS_BASE = {
     },
 }
 
-# Distribución desbalanceada (más realista que 25% cada clase)
-# En una red real hay más mediciones "Buena" que "Excelente" o "Mala"
 DISTRIBUCION = {
     "Excelente": 0.20,
     "Buena":     0.40,
@@ -83,39 +66,18 @@ DISTRIBUCION = {
     "Mala":      0.12,
 }
 
+#en este se aplica el ruido gaussiano 
 
 def _aplicar_ruido(valor: float, porcentaje_ruido: float = 0.12) -> float:
-    """
-    Añade ruido gaussiano a un valor para simular imprecisión de sensores.
-
-    Args:
-        valor: Valor original de la métrica
-        porcentaje_ruido: Desviación estándar como fracción del valor (default 12%)
-
-    Returns:
-        Valor con ruido añadido, nunca negativo
-    """
+ 
     std = abs(valor) * porcentaje_ruido
     ruido = np.random.normal(0, std)
     return max(0.0, valor + ruido)
 
 
 def _aplicar_correlacion(fila: dict, categoria: str) -> dict:
-    """
-    Aplica correlaciones realistas entre variables.
+#se aplica la correlacion entre variables  
 
-    En redes reales las variables NO son independientes:
-    - Latencia alta  → throughput bajo
-    - Congestión alta → pérdida de paquetes alta
-    - Señal débil    → velocidades bajas
-
-    Args:
-        fila: Diccionario con los valores generados
-        categoria: Clase de calidad de la muestra
-
-    Returns:
-        Diccionario con correlaciones aplicadas
-    """
     # Factor de congestión: si hay mucha congestión, degrada otras métricas
     factor_congestion = fila["congestion_red"] / 100.0  # 0 a 1
 
@@ -141,17 +103,7 @@ def _aplicar_correlacion(fila: dict, categoria: str) -> dict:
 
 
 def _generar_anomalia(fila: dict) -> dict:
-    """
-    Con baja probabilidad introduce una anomalía puntual realista.
-    Por ejemplo: pico de latencia momentáneo en red de buena calidad,
-    o ráfaga de pérdida de paquetes en red regular.
-
-    Args:
-        fila: Diccionario con los valores de la muestra
-
-    Returns:
-        Diccionario posiblemente modificado con anomalía
-    """
+#se agrega una anomalia para simular eventos 
     if np.random.random() < 0.06:   # 6% de probabilidad de anomalía
         tipo = np.random.choice(["pico_latencia", "perdida_rafaga", "congestion_pico"])
 
@@ -171,28 +123,11 @@ def _generar_anomalia(fila: dict) -> dict:
 
 
 def _redondear_fila(fila: dict) -> dict:
-    """Redondea todos los valores a 2 decimales para limpieza."""
     return {k: round(float(v), 2) for k, v in fila.items()}
 
 
 def generate_qos_dataset(n_samples: int = 1200) -> pd.DataFrame:
-    """
-    Genera un dataset sintético REALISTA de QoS para redes móviles.
-
-    Características del dataset generado:
-        - Solapamiento entre clases (no separación perfecta)
-        - Ruido gaussiano en cada variable (12% de desviación)
-        - Correlaciones entre variables (latencia ↔ throughput, etc.)
-        - Distribución desbalanceada (más muestras de clase Buena)
-        - Anomalías esporádicas (6% de muestras con valores atípicos)
-        - Casos ambiguos en la frontera entre clases adyacentes
-
-    Args:
-        n_samples: Número total de muestras (default 1200)
-
-    Returns:
-        DataFrame con variables QoS y columna 'calidad_red'
-    """
+#esta genra un dataset de prueba aplicando las tecnicas anteriormente mencionadas 
     data = []
 
     for categoria, proporcion in DISTRIBUCION.items():
@@ -230,23 +165,6 @@ def generate_qos_dataset(n_samples: int = 1200) -> pd.DataFrame:
 
 
 def _agregar_casos_frontera(data: list, n_frontera: int) -> list:
-    """
-    Añade casos que están en la frontera entre dos clases adyacentes.
-    Estos casos tienen características mixtas y son genuinamente difíciles
-    de clasificar, lo que evita el sobreentrenamiento.
-
-    Fronteras:
-        Excelente ↔ Buena
-        Buena     ↔ Regular
-        Regular   ↔ Mala
-
-    Args:
-        data: Lista de filas existentes
-        n_frontera: Número de casos frontera a añadir
-
-    Returns:
-        Lista extendida con casos frontera
-    """
     fronteras = [
         ("Excelente", "Buena"),
         ("Buena",     "Regular"),
@@ -291,7 +209,7 @@ def _agregar_casos_frontera(data: list, n_frontera: int) -> list:
 
 
 def get_dataset_stats(df: pd.DataFrame) -> None:
-    """Imprime estadísticas del dataset generado para verificación."""
+#imprime las estadisticas del dataset
     print("=" * 55)
     print("DATASET QoS REALISTA — ESTADÍSTICAS")
     print("=" * 55)
