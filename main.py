@@ -1,19 +1,10 @@
-"""
-main.py — Punto de entrada para ejecución en modo consola (sin interfaz).
-Útil para entornos de servidor, scripts batch o CI/CD.
-
-Uso:
-    python main.py --file data/qos_datos.xlsx --target calidad_red
-    python main.py --generate-sample
-"""
-
 import argparse
 import logging
 import os
 import sys
 from pathlib import Path
 
-# Configuración de logging
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
@@ -21,7 +12,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("main")
 
-# Importaciones del proyecto
+
 from app.data_loader import load_file, validate_dataframe, detect_target_column
 from app.preprocessor import QoSPreprocessor
 from app.models import QoSModelTrainer
@@ -72,17 +63,8 @@ def run_pipeline(
     random_state: int = 42,
     k_features: int = 10,
 ) -> None:
-    """
-    Ejecuta el pipeline completo de ML en modo consola.
 
-    Args:
-        filepath: Ruta al dataset
-        target_col: Columna objetivo (None = auto-detect)
-        test_size: Fracción de test
-        random_state: Semilla aleatoria
-        k_features: Número de features para SelectKBest
-    """
-    #1. Carga y validación
+
     logger.info("=" * 60)
     logger.info("PASO 1: Carga de datos")
     df = load_file(filepath)
@@ -100,7 +82,7 @@ def run_pipeline(
     for w in validation["warnings"]:
         logger.warning("VALIDACIÓN: %s", w)
 
-    #2. Detección de columna objetivo
+
     if target_col is None:
         target_col = detect_target_column(df)
         if target_col is None:
@@ -108,7 +90,7 @@ def run_pipeline(
             sys.exit(1)
     logger.info("Columna objetivo: '%s'", target_col)
 
-    #3. Preprocesamiento
+ 
     logger.info("=" * 60)
     logger.info("PASO 2: Preprocesamiento")
     preprocessor = QoSPreprocessor(
@@ -120,7 +102,7 @@ def run_pipeline(
     logger.info("Clases: %s", preprocessor.class_names)
     logger.info("Features seleccionadas: %s", preprocessor.selected_features)
 
-    #4. Entrenamiento
+
     logger.info("=" * 60)
     logger.info("PASO 3: Entrenamiento de modelos")
     trainer = QoSModelTrainer(models_dir="models", random_state=random_state)
@@ -129,12 +111,12 @@ def run_pipeline(
         class_names=preprocessor.class_names,
     )
 
-    # Tabla comparativa
+
     comp_df = trainer.get_comparison_dataframe()
     logger.info("\n%s", comp_df.to_string(index=False))
     logger.info("Mejor modelo: %s", trainer.best_model_name)
 
-    #5. Visualizaciones
+
     logger.info("=" * 60)
     logger.info("PASO 4: Generando visualizaciones")
     best_metrics = results[trainer.best_model_name]
@@ -152,7 +134,7 @@ def run_pipeline(
         graphs_dir="graphs",
     )
 
-    #6. Exportación
+
     logger.info("=" * 60)
     logger.info("PASO 5: Exportando resultados")
     os.makedirs("reports", exist_ok=True)

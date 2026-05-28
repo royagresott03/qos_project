@@ -1,8 +1,3 @@
-"""
-Módulo de visualizaciones profesionales para análisis QoS.
-Genera gráficas con matplotlib/seaborn y las guarda en disco.
-"""
-
 import os
 import numpy as np
 import pandas as pd
@@ -16,7 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Configuración global de estilo
+
 PALETTE = "viridis"
 FIG_DPI = 150
 TITLE_FONTSIZE = 14
@@ -43,30 +38,19 @@ def _save_and_close(fig: plt.Figure, filename: str, graphs_dir: str = GRAPHS_DIR
     return path
 
 
-# 1. Heatmap de correlación
+
 def plot_correlation_heatmap(
     df: pd.DataFrame,
     target_col: Optional[str] = None,
     graphs_dir: str = GRAPHS_DIR,
     max_cols: int = 15,
 ) -> str:
-    """
-    Genera un heatmap de correlación entre variables numéricas.
 
-    Args:
-        df: DataFrame con los datos
-        target_col: Columna objetivo (se excluye si es categórica)
-        graphs_dir: Directorio de salida
-        max_cols: Máximo de columnas para mostrar (evita heatmaps enormes)
-
-    Returns:
-        Ruta de la imagen guardada
-    """
     num_df = df.select_dtypes(include=[np.number])
     if target_col and target_col in num_df.columns:
         num_df = num_df.drop(columns=[target_col])
 
-    # Limitar columnas para legibilidad
+
     if num_df.shape[1] > max_cols:
         num_df = num_df.iloc[:, :max_cols]
 
@@ -93,24 +77,14 @@ def plot_correlation_heatmap(
     return _save_and_close(fig, "heatmap_correlacion.png", graphs_dir)
 
 
-# 2. Distribución de clases
+
 
 def plot_class_distribution(
     y_labels: np.ndarray,
     class_names: List[str],
     graphs_dir: str = GRAPHS_DIR,
 ) -> str:
-    """
-    Gráfica de barras con la distribución de las clases objetivo.
 
-    Args:
-        y_labels: Array de etiquetas (codificadas o texto)
-        class_names: Nombres legibles de las clases
-        graphs_dir: Directorio de salida
-
-    Returns:
-        Ruta de la imagen guardada
-    """
     fig, ax = plt.subplots(figsize=(8, 5))
 
     # Calcular conteos
@@ -121,7 +95,7 @@ def plot_class_distribution(
     colors = sns.color_palette(PALETTE, len(unique))
     bars = ax.bar(labels, counts, color=colors, edgecolor="white", linewidth=1.5)
 
-    # Anotar porcentajes sobre cada barra
+
     for bar, count in zip(bars, counts):
         pct = count / total * 100
         ax.text(
@@ -139,7 +113,7 @@ def plot_class_distribution(
     return _save_and_close(fig, "distribucion_clases.png", graphs_dir)
 
 
-# 3. Histogramas de variables numéricas
+
 
 def plot_feature_histograms(
     df: pd.DataFrame,
@@ -147,18 +121,7 @@ def plot_feature_histograms(
     graphs_dir: str = GRAPHS_DIR,
     max_features: int = 12,
 ) -> str:
-    """
-    Histogramas de las principales variables numéricas, coloreados por clase.
 
-    Args:
-        df: DataFrame con datos (incluye target_col si existe)
-        target_col: Columna para colorear distribuciones
-        graphs_dir: Directorio de salida
-        max_features: Máximo de features a graficar
-
-    Returns:
-        Ruta de la imagen guardada
-    """
     num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     if target_col in num_cols:
         num_cols.remove(target_col)
@@ -192,24 +155,14 @@ def plot_feature_histograms(
     return _save_and_close(fig, "histogramas_variables.png", graphs_dir)
 
 
-# 4. Importancia de características
+
 
 def plot_feature_importances(
     importances_df: pd.DataFrame,
     graphs_dir: str = GRAPHS_DIR,
     top_n: int = 15,
 ) -> str:
-    """
-    Gráfica horizontal de barras con importancia de características.
 
-    Args:
-        importances_df: DataFrame con columnas ['feature', 'importance']
-        graphs_dir: Directorio de salida
-        top_n: Número de características top a mostrar
-
-    Returns:
-        Ruta de la imagen guardada
-    """
     df_top = importances_df.head(top_n).copy()
     df_top["feature"] = df_top["feature"].str.replace("_", " ").str.title()
 
@@ -240,21 +193,10 @@ def plot_confusion_matrix(
     model_name: str = "Modelo",
     graphs_dir: str = GRAPHS_DIR,
 ) -> str:
-    """
-    Genera una matriz de confusión visualmente mejorada.
 
-    Args:
-        cm: Matriz de confusión (numpy array)
-        class_names: Nombres de las clases
-        model_name: Nombre del modelo para el título
-        graphs_dir: Directorio de salida
-
-    Returns:
-        Ruta de la imagen guardada
-    """
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    # Normalizar para porcentajes (por fila)
+
     cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
 
     im = ax.imshow(cm_norm, interpolation="nearest", cmap="Blues", vmin=0, vmax=1)
@@ -266,7 +208,7 @@ def plot_confusion_matrix(
     ax.set_xticklabels(class_names, rotation=30, ha="right", fontsize=10)
     ax.set_yticklabels(class_names, fontsize=10)
 
-    # Anotaciones: conteo y porcentaje
+
     thresh = 0.5
     for i in range(n):
         for j in range(n):
@@ -288,22 +230,13 @@ def plot_confusion_matrix(
     return _save_and_close(fig, "matriz_confusion.png", graphs_dir)
 
 
-# 6. Comparación de modelos
+
 
 def plot_model_comparison(
     comparison_df: pd.DataFrame,
     graphs_dir: str = GRAPHS_DIR,
 ) -> str:
-    """
-    Gráfica de barras agrupadas para comparar métricas de todos los modelos.
 
-    Args:
-        comparison_df: DataFrame con columnas [Modelo, Accuracy, Precision, Recall, F1-Score]
-        graphs_dir: Directorio de salida
-
-    Returns:
-        Ruta de la imagen guardada
-    """
     metrics = ["Accuracy", "Precision", "Recall", "F1-Score"]
     df_plot = comparison_df.dropna(subset=["Accuracy"])[["Modelo"] + metrics].copy()
 
@@ -336,7 +269,7 @@ def plot_model_comparison(
     return _save_and_close(fig, "comparacion_modelos.png", graphs_dir)
 
 
-# 7. Función agrupadora: genera todas las gráficas de una vez
+
 
 def generate_all_plots(
     df: pd.DataFrame,
@@ -349,12 +282,7 @@ def generate_all_plots(
     comparison_df: pd.DataFrame,
     graphs_dir: str = GRAPHS_DIR,
 ) -> Dict[str, str]:
-    """
-    Genera y guarda todas las gráficas del sistema.
 
-    Returns:
-        Diccionario {nombre_grafica: ruta_archivo}
-    """
     paths: Dict[str, str] = {}
 
     paths["heatmap"] = plot_correlation_heatmap(df, target_col, graphs_dir)

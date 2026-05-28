@@ -5,8 +5,6 @@ import os
 np.random.seed(42)
 
 
-# ---------------------------------------------------------------------------
-# implemente el solapamiento entre clases y ruido guassiano esto para que la prediccion sea mas real 
 
 RANGOS_BASE = {
     "Excelente": {
@@ -78,23 +76,21 @@ def _aplicar_ruido(valor: float, porcentaje_ruido: float = 0.12) -> float:
 def _aplicar_correlacion(fila: dict, categoria: str) -> dict:
 #se aplica la correlacion entre variables  
 
-    # Factor de congestión: si hay mucha congestión, degrada otras métricas
-    factor_congestion = fila["congestion_red"] / 100.0  # 0 a 1
 
-    # Latencia sube con la congestión (correlación positiva)
+    factor_congestion = fila["congestion_red"] / 100.0  
+
+
     fila["latencia_ms"] *= (1 + factor_congestion * 0.4)
 
-    # Throughput baja con la congestión (correlación negativa)
+
     fila["throughput_mbps"] *= (1 - factor_congestion * 0.35)
     fila["throughput_mbps"] = max(0.1, fila["throughput_mbps"])
 
-    # Pérdida de paquetes correlacionada con jitter
+
     factor_jitter = min(fila["jitter_ms"] / 100.0, 1.0)
     fila["perdida_paquetes"] *= (1 + factor_jitter * 0.3)
 
-    # Velocidades correlacionadas con intensidad de señal
-    # Señal más débil (más negativa) → velocidades más bajas
-    factor_senal = (fila["intensidad_senal"] + 115) / 65.0  # normaliza -115 a -50
+    factor_senal = (fila["intensidad_senal"] + 115) / 65.0  
     factor_senal = max(0.1, min(factor_senal, 1.0))
     fila["velocidad_descarga"] *= factor_senal
     fila["velocidad_subida"]   *= factor_senal
@@ -103,7 +99,7 @@ def _aplicar_correlacion(fila: dict, categoria: str) -> dict:
 
 
 def _generar_anomalia(fila: dict) -> dict:
-#se agrega una anomalia para simular eventos 
+
     if np.random.random() < 0.06:   # 6% de probabilidad de anomalía
         tipo = np.random.choice(["pico_latencia", "perdida_rafaga", "congestion_pico"])
 
@@ -137,27 +133,26 @@ def generate_qos_dataset(n_samples: int = 1200) -> pd.DataFrame:
         for _ in range(n_cat):
             fila = {}
 
-            # 1. Generar valores dentro de los rangos base
+
             for col, (low, high) in rangos.items():
                 fila[col] = np.random.uniform(low, high)
 
-            # 2. Aplicar ruido gaussiano (simula imprecisión de sensores)
+
             for col in fila:
                 fila[col] = _aplicar_ruido(fila[col], porcentaje_ruido=0.12)
 
-            # 3. Aplicar correlaciones realistas entre variables
+
             fila = _aplicar_correlacion(fila, categoria)
 
-            # 4. Introducir anomalías esporádicas
+
             fila = _generar_anomalia(fila)
 
-            # 5. Redondear
+
             fila = _redondear_fila(fila)
             fila["calidad_red"] = categoria
             data.append(fila)
 
-    # Añadir casos explícitamente ambiguos en fronteras entre clases
-    # Estos son los más difíciles de clasificar y evitan el 100% accuracy
+
     data = _agregar_casos_frontera(data, int(n_samples * 0.08))
 
     df = pd.DataFrame(data).sample(frac=1, random_state=42).reset_index(drop=True)
@@ -181,27 +176,27 @@ def _agregar_casos_frontera(data: list, n_frontera: int) -> list:
             fila = {}
 
             for col in rangos_a:
-                # Mezcla aleatoria: algunas variables de clase A, otras de clase B
+
                 if np.random.random() < 0.5:
                     low, high = rangos_a[col]
-                    # Tomar del extremo "peor" de la clase A
+
                     valor = np.random.uniform(
-                        low + (high - low) * 0.6,  # último 40% del rango
+                        low + (high - low) * 0.6,  
                         high
                     )
                 else:
                     low, high = rangos_b[col]
-                    # Tomar del extremo "mejor" de la clase B
+
                     valor = np.random.uniform(
                         low,
-                        low + (high - low) * 0.4   # primer 40% del rango
+                        low + (high - low) * 0.4   
                     )
 
                 fila[col] = _aplicar_ruido(valor, porcentaje_ruido=0.08)
 
             fila = _redondear_fila(fila)
 
-            # La etiqueta es la clase "peor" de las dos (más conservador)
+
             fila["calidad_red"] = clase_b
             data.append(fila)
 
@@ -209,7 +204,7 @@ def _agregar_casos_frontera(data: list, n_frontera: int) -> list:
 
 
 def get_dataset_stats(df: pd.DataFrame) -> None:
-#imprime las estadisticas del dataset
+
     print("=" * 55)
     print("DATASET QoS REALISTA — ESTADÍSTICAS")
     print("=" * 55)

@@ -1,11 +1,3 @@
-"""
-Interfaz gráfica Streamlit para el sistema de predicción de calidad QoS
-en redes móviles mediante Machine Learning.
-
-Ejecutar con:
-    streamlit run app/streamlit_app.py
-"""
-
 import os
 import sys
 import io
@@ -18,7 +10,6 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 
-# Asegurar que el paquete raíz esté en el path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
@@ -44,7 +35,7 @@ from app.exporter import (
     package_results_zip,
 )
 
-# Configuración de logging
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)s  %(name)s  %(message)s",
@@ -52,7 +43,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("streamlit_app")
 
-# Directorios de trabajo
+
 GRAPHS_DIR = str(ROOT / "graphs")
 MODELS_DIR = str(ROOT / "models")
 REPORTS_DIR = str(ROOT / "reports")
@@ -60,7 +51,7 @@ os.makedirs(GRAPHS_DIR, exist_ok=True)
 os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
-# Configuración de la página
+
 st.set_page_config(
     page_title="QoS ML Analyzer",
     page_icon="📡",
@@ -68,7 +59,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# CSS 
+
 st.markdown(
     """
     <style>
@@ -136,7 +127,7 @@ st.markdown(
 )
 
 
-# Helpers de UI
+
 
 def metric_card(label: str, value: str, delta: str = "") -> None:
     delta_html = f"<div style='color:#10B981;font-size:.85rem;'>{delta}</div>" if delta else ""
@@ -164,7 +155,7 @@ def show_image(path: str, caption: str = "") -> None:
         st.info(f"Gráfica no disponible: {caption}")
 
 
-# Banner principal
+
 
 st.markdown(
     """
@@ -177,7 +168,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Sidebar — configuración del análisis
+
 
 
 with st.sidebar:
@@ -215,7 +206,7 @@ with st.sidebar:
     )
 
 
-# Inicializar estado de sesión
+
 for key in ["df", "preprocessor", "trainer", "X_test_raw", "results_ready",
             "graph_paths", "target_col"]:
     if key not in st.session_state:
@@ -223,7 +214,7 @@ for key in ["df", "preprocessor", "trainer", "X_test_raw", "results_ready",
 if "results_ready" not in st.session_state:
     st.session_state["results_ready"] = False
 
-# PASO 1 — Carga de datos
+
 section_title("1. Cargar Dataset")
 
 col_upload, col_sample = st.columns([2, 1])
@@ -253,7 +244,7 @@ with col_sample:
         st.session_state["df"] = sample_df
         st.success("Dataset de ejemplo cargado en memoria.")
 
-# Cargar desde archivo subido
+
 if uploaded_file:
     with tempfile.NamedTemporaryFile(
         delete=False,
@@ -270,7 +261,7 @@ if uploaded_file:
         except Exception as e:
             st.error(f"Error al cargar el archivo: {e}")
 
-# Mostrar previsualización si hay datos
+
 if st.session_state["df"] is not None:
     df = st.session_state["df"]
 
@@ -279,7 +270,7 @@ if st.session_state["df"] is not None:
         with col1:
             st.dataframe(df.head(10), use_container_width=True)
         with col2:
-            # Validación
+
             validation = validate_dataframe(df)
             st.markdown("**Resumen de validación:**")
             v_cols = st.columns(3)
@@ -294,13 +285,13 @@ if st.session_state["df"] is not None:
                 for e in validation["errors"]:
                     st.error(e)
 
-            # Nulos
+
             null_series = pd.Series(validation["null_percentage"])
             if null_series.max() > 0:
                 st.markdown("**% Valores nulos por columna:**")
                 st.bar_chart(null_series[null_series > 0])
 
-    # Selección de columna objetivo
+
     section_title("2. Columna Objetivo")
     auto_target = detect_target_column(df)
     all_cols = df.columns.tolist()
@@ -315,7 +306,7 @@ if st.session_state["df"] is not None:
     st.info(f"Columna objetivo seleccionada: **{target_col}** | "
             f"Valores únicos: {df[target_col].nunique()} — {list(df[target_col].unique())[:6]}")
 
-    # PASO 2 — Entrenamiento
+
     section_title("3. Entrenar Modelos")
 
     if st.button("🚀 Iniciar Entrenamiento", type="primary", use_container_width=True):
@@ -323,7 +314,7 @@ if st.session_state["df"] is not None:
         status = st.empty()
 
         try:
-            # Preprocesamiento
+
             status.info("⚙️ Preprocesando datos...")
             progress.progress(15, "Preprocesando...")
             preprocessor = QoSPreprocessor(
@@ -334,7 +325,6 @@ if st.session_state["df"] is not None:
             X_train, X_test, y_train, y_test = preprocessor.fit_transform(df, target_col)
             st.session_state["preprocessor"] = preprocessor
 
-            # Guardar X_test sin normalizar para exportación
             feat_cols = preprocessor.selected_features
             X_test_df = df.drop(columns=[target_col]).iloc[: len(X_test)][feat_cols]
             st.session_state["X_test_raw"] = X_test_df.reset_index(drop=True)

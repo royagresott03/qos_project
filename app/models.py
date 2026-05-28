@@ -1,8 +1,3 @@
-"""
-Módulo de modelos de Machine Learning para clasificación QoS.
-Implementa, entrena, compara y selecciona el mejor clasificador.
-"""
-
 import numpy as np
 import pandas as pd
 import pickle
@@ -36,15 +31,7 @@ logger = logging.getLogger(__name__)
 # Definición de modelos disponibles
 
 def build_model_catalog(random_state: int = 42) -> Dict[str, Any]:
-    """
-    Construye el catálogo de modelos con sus hiperparámetros por defecto.
 
-    Args:
-        random_state: Semilla para reproducibilidad
-
-    Returns:
-        Diccionario {nombre_modelo: instancia_sklearn}
-    """
     catalog = {
         "Random Forest": RandomForestClassifier(
             n_estimators=200,
@@ -96,21 +83,10 @@ def build_model_catalog(random_state: int = 42) -> Dict[str, Any]:
 # Clase principal del entrenador
 
 class QoSModelTrainer:
-    """
-    este enntrena lo multiples modelos, los compara y guarda el mejor.
 
-    Atributos:
-        results: Diccionario con metricas de cada modelo
-        best_model_name: nombre del modelo con mejor accuracy
-        best_model: Instancia del mejor modelo entrenado
-    """
 
     def __init__(self, models_dir: str = "models", random_state: int = 42):
-        """
-        Args:
-            models_dir: Directorio donde guardar modelos .pkl
-            random_state: Semilla de aleatoriedad
-        """
+
         self.models_dir = models_dir
         self.random_state = random_state
         self.results: Dict[str, Dict[str, Any]] = {}
@@ -128,13 +104,7 @@ class QoSModelTrainer:
         y_test: np.ndarray,
         class_names: List[str],
     ) -> Dict[str, Any]:
-        """
-        este evalua un modelo ya entrenado sobre el conjunto de test.
 
-        Returns:
-            Diccionario con accuracy, precision, recall, f1, confusion_matrix
-            y classification_report detallado.
-        """
         y_pred = model.predict(X_test)
 
         metrics = {
@@ -160,17 +130,7 @@ class QoSModelTrainer:
         y_test: np.ndarray,
         class_names: List[str],
     ) -> Dict[str, Dict[str, Any]]:
-        """
-        entrena y evalua todos los modelos del catalogo.
 
-        Args:
-            X_train, X_test: Features normalizadas
-            y_train, y_test: Etiquetas codificadas
-            class_names: Lista de nombres de clases
-
-        Returns:
-            Diccionario con resultados por modelo
-        """
         self.class_names = class_names
         catalog = build_model_catalog(self.random_state)
         all_results: Dict[str, Dict[str, Any]] = {}
@@ -201,7 +161,7 @@ class QoSModelTrainer:
         return all_results
 
     def _select_best_model(self) -> None:
-        """Selecciona el modelo con mayor accuracy (sin errores)."""
+
         valid = {
             k: v for k, v in self.results.items()
             if "error" not in v
@@ -217,51 +177,26 @@ class QoSModelTrainer:
             self.results[self.best_model_name]["accuracy"],
         )
 
-    # Predicción
+
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """
-        realiza predicciones con el mejor modelo entrenado.
 
-        Args:
-            X: Features normalizadas
-
-        Returns:
-            Array con etiquetas numericas predichas
-        """
         if self.best_model is None:
             raise RuntimeError("Primero llama a train_all().")
         return self.best_model.predict(X)
 
     def predict_proba(self, X: np.ndarray) -> Optional[np.ndarray]:
-        """
-        retorna probabilidades de clase 
 
-        args:
-            X: Features normalizadas
-
-        returns:
-            matriz de probabilidades o None
-        """
         if hasattr(self.best_model, "predict_proba"):
             return self.best_model.predict_proba(X)
         return None
 
-    # Importancia de características
+
 
     def get_feature_importances(
         self, feature_names: List[str]
     ) -> Optional[pd.DataFrame]:
-        """
-        extrae la importancia de características del mejor modelo
-        (solo disponible para modelos basados en arboles y XGBoost).
 
-        Args:
-            feature_names: Lista de nombres de columnas de entrada
-
-        Returns:
-            dataframe ordenado por importancia o None
-        """
         if self.best_model is None:
             return None
 
@@ -278,18 +213,10 @@ class QoSModelTrainer:
         )
         return None
 
-    # Persistencia
+
 
     def save_best_model(self, filename: str = "best_model.pkl") -> str:
-        """
-        este guarda el mejor modelo entrenado como archivo .pkl.
 
-        Args:
-            filename: Nombre del archivo (sin ruta)
-
-        Returns:
-            Ruta completa del archivo guardado
-        """
         if self.best_model is None:
             raise RuntimeError("No hay modelo para guardar.")
 
@@ -312,29 +239,16 @@ class QoSModelTrainer:
 
     @staticmethod
     def load_model(path: str) -> Dict[str, Any]:
-        """
-        carga un modelo desde un archivo .pkl.
 
-        Args:
-            path: ruta al archivo .pkl
-
-        Returns:
-            diccionario con modelo y metadatos
-        """
         with open(path, "rb") as f:
             payload = pickle.load(f)
         logger.info("Modelo cargado: %s", payload.get("model_name"))
         return payload
 
-    # Reporte comparativo
+
 
     def get_comparison_dataframe(self) -> pd.DataFrame:
-        """
-        este construye un dataframe comparativo de todos los modelos entrenados.
 
-        Returns:
-            dataframe con métricas por modelo, ordenado por accuracy desc
-        """
         rows = []
         for name, res in self.results.items():
             if "error" in res:

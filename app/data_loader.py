@@ -1,8 +1,3 @@
-"""
-Módulo de carga y validación de datos QoS.
-Responsable de leer archivos Excel/CSV, validar estructura y preprocesar.
-"""
-
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -25,19 +20,7 @@ TARGET_COLUMN_CANDIDATES = ["calidad_red", "quality", "label", "clase", "categor
 # Funciones públicas
 
 def load_file(filepath: str) -> pd.DataFrame:
-    """
-    Carga un archivo Excel o CSV y retorna un DataFrame.
 
-    Args:
-        filepath: Ruta al archivo .xlsx, .xls o .csv
-
-    Returns:
-        DataFrame con los datos cargados
-
-    Raises:
-        ValueError: Si el formato no es soportado
-        FileNotFoundError: Si el archivo no existe
-    """
     path = Path(filepath)
 
     if not path.exists():
@@ -62,15 +45,6 @@ def load_file(filepath: str) -> pd.DataFrame:
 
 
 def validate_dataframe(df: pd.DataFrame) -> Dict[str, Any]:
-    """
-    Valida la calidad del DataFrame y retorna un reporte de validación.
-
-    Args:
-        df: DataFrame a validar
-
-    Returns:
-        Diccionario con métricas de validación y advertencias
-    """
     report: Dict[str, Any] = {
         "total_rows": len(df),
         "total_columns": len(df.columns),
@@ -108,26 +82,15 @@ def validate_dataframe(df: pd.DataFrame) -> Dict[str, Any]:
 
 
 def detect_target_column(df: pd.DataFrame) -> Optional[str]:
-    """
-    Detecta automáticamente la columna objetivo (variable a predecir).
 
-    Primero busca nombres conocidos; si no encuentra, sugiere columnas
-    categóricas con pocos valores únicos.
-
-    Args:
-        df: DataFrame de entrada
-
-    Returns:
-        Nombre de la columna objetivo o None si no se detecta
-    """
     columns_lower = {c.lower(): c for c in df.columns}
 
-    # 1. Buscar por nombres conocidos
+   
     for candidate in TARGET_COLUMN_CANDIDATES:
         if candidate in columns_lower:
             return columns_lower[candidate]
 
-    # 2. Buscar columna categórica con 2-6 categorías
+
     for col in df.select_dtypes(exclude=[np.number]).columns:
         n_unique = df[col].nunique()
         if 2 <= n_unique <= 6:
@@ -138,30 +101,12 @@ def detect_target_column(df: pd.DataFrame) -> Optional[str]:
 
 
 def get_feature_columns(df: pd.DataFrame, target_col: str) -> list:
-    """
-    Retorna las columnas de características (todo excepto el target).
 
-    Args:
-        df: DataFrame completo
-        target_col: Nombre de la columna objetivo
-
-    Returns:
-        Lista de nombres de columnas de características
-    """
     return [c for c in df.columns if c != target_col]
 
 
 def preview_dataframe(df: pd.DataFrame, n: int = 5) -> Dict[str, Any]:
-    """
-    Genera un resumen visual del DataFrame para mostrar en la interfaz.
 
-    Args:
-        df: DataFrame a resumir
-        n: Número de filas de muestra
-
-    Returns:
-        Diccionario con head, dtypes y estadísticas descriptivas
-    """
     return {
         "head": df.head(n),
         "dtypes": df.dtypes.astype(str).to_dict(),

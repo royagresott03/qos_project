@@ -1,8 +1,3 @@
-"""
-Módulo de preprocesamiento de datos QoS.
-Realiza limpieza, codificación, normalización y división del dataset.
-"""
-
 import pandas as pd
 import numpy as np
 from typing import Tuple, Dict, Any, List, Optional
@@ -15,9 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class QoSPreprocessor:
-    """
-    Pipeline de preprocesamiento completo para datos QoS.
-    """
 
     def __init__(self, test_size: float = 0.2, random_state: int = 42,
                  k_best_features: int = 10):
@@ -68,23 +60,7 @@ class QoSPreprocessor:
 
     def _remove_outliers_safe(self, df: pd.DataFrame, target_col: str,
                                threshold: float = 3.5) -> pd.DataFrame:
-        """
-        Eliminación SEGURA de outliers usando z-score con umbral más permisivo.
 
-        CORRECCIÓN del bug anterior:
-        - Umbral subido de 3.0 a 3.5 para ser menos agresivo
-        - Verifica que queden suficientes filas antes de aplicar
-        - Si quedarían menos de 50 filas, omite la eliminación completamente
-        - Aplica por columna individualmente en lugar de todas a la vez
-
-        Args:
-            df: DataFrame de entrada
-            target_col: Columna a excluir
-            threshold: Z-score máximo permitido (default 3.5)
-
-        Returns:
-            DataFrame limpio o el original si no es seguro filtrar
-        """
         num_cols = [
             c for c in df.select_dtypes(include=[np.number]).columns
             if c != target_col
@@ -105,15 +81,15 @@ class QoSPreprocessor:
         try:
             from scipy import stats as scipy_stats
 
-            # Calcular z-scores solo para columnas numéricas
+
             z_scores = np.abs(scipy_stats.zscore(df[num_cols], nan_policy='omit'))
 
-            # Máscara: filas donde TODAS las columnas están dentro del umbral
+
             mask = (z_scores < threshold).all(axis=1)
 
             n_resultado = mask.sum()
 
-            # Seguridad: si quedarían menos del 30% de los datos, no filtrar
+
             if n_resultado < n_original * 0.30:
                 logger.warning(
                     "Filtro de outliers eliminaría el %.0f%% de los datos (%d→%d filas). "
@@ -124,7 +100,6 @@ class QoSPreprocessor:
                 )
                 return df
 
-            # Seguridad: si quedarían menos de 50 filas absolutas, no filtrar
             if n_resultado < 50:
                 logger.warning(
                     "Filtro de outliers dejaría solo %d filas. Omitiendo.",
@@ -149,42 +124,23 @@ class QoSPreprocessor:
     def fit_transform(
         self, df: pd.DataFrame, target_col: str
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Aplica el pipeline completo de preprocesamiento.
 
-        Pasos:
-            1. Eliminar duplicados
-            2. Manejar nulos
-            3. Codificar categóricas
-            4. Eliminar outliers (con verificación de seguridad)
-            5. Codificar target
-            6. Selección de características
-            7. Dividir en train/test
-            8. Normalizar
-
-        Args:
-            df: DataFrame completo
-            target_col: Columna objetivo
-
-        Returns:
-            Tupla (X_train, X_test, y_train, y_test)
-        """
         logger.info("Iniciando pipeline de preprocesamiento...")
         logger.info("Dataset inicial: %d filas × %d columnas", *df.shape)
 
-        # 1. Duplicados
+
         df = self._drop_duplicates(df)
 
-        # 2. Nulos
+
         df = self._handle_nulls(df)
 
-        # 3. Categóricas
+
         df = self._encode_categoricals(df, target_col)
 
-        # 4. Outliers (ahora con verificación de seguridad)
+
         df = self._remove_outliers_safe(df, target_col)
 
-        # Verificación crítica: asegurarse de que quedan filas suficientes
+
         if len(df) < 20:
             raise ValueError(
                 f"El dataset quedó con solo {len(df)} filas después del preprocesamiento. "
@@ -194,19 +150,18 @@ class QoSPreprocessor:
 
         logger.info("Dataset tras preprocesamiento: %d filas", len(df))
 
-        # 5. Separar features y target
+
         y_raw = df[target_col].values
         X_df = df.drop(columns=[target_col])
         self.feature_names = X_df.columns.tolist()
 
-        # 6. Codificar target
+
         y_encoded = self.label_encoder.fit_transform(y_raw)
         self.class_names = list(self.label_encoder.classes_)
         logger.info("Clases detectadas: %s", self.class_names)
 
         X = X_df.values.astype(float)
 
-        # 7. Selección de características
         k = min(self.k_best_features, X.shape[1]) if self.k_best_features > 0 else X.shape[1]
         if k < X.shape[1] and self.k_best_features > 0:
             selector = SelectKBest(f_classif, k=k)
@@ -220,7 +175,6 @@ class QoSPreprocessor:
         else:
             self.selected_features = self.feature_names
 
-        # 8. Dividir train/test estratificado
         # Verificar que hay suficientes muestras por clase para estratificar
         unique, counts = np.unique(y_encoded, return_counts=True)
         min_class_count = counts.min()
@@ -241,7 +195,7 @@ class QoSPreprocessor:
             stratify=stratify,
         )
 
-        # 9. Normalizar (solo fit en train)
+
         X_train = self.scaler.fit_transform(X_train)
         X_test = self.scaler.transform(X_test)
 
